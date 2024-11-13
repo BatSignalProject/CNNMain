@@ -33,9 +33,22 @@ def upload_file():
 
         # Load .wav file
         y, sr = librosa.load(file_path)
+        
+        # Apply band-pass filter
+        low_freq = 300  # Lower bound of the frequency range
+        high_freq = 3000  # Upper bound of the frequency range
+        nyquist = 0.5 * sr
+        low = low_freq / nyquist
+        high = high_freq / nyquist
+        b, a = scipy.signal.butter(1, [low, high], btype='band')
+        y_filtered = scipy.signal.lfilter(b, a, y)
+
+        # Detect and remove silent parts
+        non_silent_intervals = librosa.effects.split(y_filtered, top_db=20)
+        y_non_silent = np.concatenate([y_filtered[start:end] for start, end in non_silent_intervals])
 
         # Convert to spectrogram
-        spectrogram = librosa.feature.melspectrogram(y=y, sr=sr)
+        spectrogram = librosa.feature.melspectrogram(y=y_non_silent, sr=sr)
 
         # Resize spectrogram to fixed size using interpolation
         zoom_factor = (fixed_size[0] / spectrogram.shape[0], fixed_size[1] / spectrogram.shape[1])
