@@ -1,8 +1,6 @@
 import os
 from flask import Flask, render_template, request, send_from_directory
 import librosa
-import numpy as np
-import scipy.ndimage
 import matplotlib.pyplot as plt
 
 # Initialize the Flask app and set configurations for upload and spectrogram directories
@@ -13,9 +11,6 @@ UPLOAD_FOLDER = 'uploads'
 SPECTROGRAM_FOLDER = 'spectrograms' # Folder to store generated spectrogram images
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SPECTROGRAM_FOLDER'] = SPECTROGRAM_FOLDER
-
-# Define a fixed size for spectrogram images to standardize output dimensions
-fixed_size = (640, 640)
 
 # Define the root route that renders the upload form HTML page
 @app.route('/')
@@ -49,44 +44,15 @@ def upload_file():
         # Load the audio file using librosa
         y, sr = librosa.load(file_path)
         
-        # Apply a band-pass filter to the audio to isolate the desired frequency range
-        low_freq = 300  # Lower bound of the frequency range (in Hz)
-        high_freq = 3000  # Upper bound of the frequency range (in Hz)
+       # Convert to spectrogram with specified frequency range and higher resolution
+        spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, fmin=2000, fmax=8000, n_fft=1024, hop_length=256)
 
-        # Nyquist frequency for normalization
-        nyquist = 0.5 * sr
-        low = low_freq / nyquist
-        high = high_freq / nyquist
-
-        # Design a Butterworth band-pass filter
-        b, a = scipy.signal.butter(1, [low, high], btype='band')
-
-        # Apply the filter to the audio signal
-        y_filtered = scipy.signal.lfilter(b, a, y)
-
-        # Detect and remove silent parts
-        non_silent_intervals = librosa.effects.split(y_filtered, top_db=20)
-        y_non_silent = np.concatenate([y_filtered[start:end] for start, end in non_silent_intervals])
-
-        # Convert to spectrogram
-        spectrogram = librosa.feature.melspectrogram(y=y_non_silent, sr=sr)
-
-        # Resize spectrogram to fixed size using interpolation
-        zoom_factor = (fixed_size[0] / spectrogram.shape[0], fixed_size[1] / spectrogram.shape[1])
-        spectrogram = scipy.ndimage.zoom(spectrogram, zoom_factor)
-        
         # Save spectrogram as an image file
-
-        # Set figure size for the plot
-        plt.figure(figsize=(10, 10))
-
-        # Display the spectrogram
-        plt.imshow(spectrogram, aspect='auto', origin='lower')
-
-        # Define save path
+        plt.figure(figsize=(500, 5))
+        librosa.display.specshow(librosa.power_to_db(spectrogram), sr=sr, x_axis='time', y_axis='mel', fmin=2000, fmax=8000, cmap="gray_r")
+        plt.xlabel('Time (s)')
+        plt.ylabel('Frequency (Hz)')
         spectrogram_image_path = os.path.join(app.config['SPECTROGRAM_FOLDER'], 'spectrogram.png')
-
-        # Save the plot as an image file
         plt.savefig(spectrogram_image_path)
         plt.close()
 
