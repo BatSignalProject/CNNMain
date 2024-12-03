@@ -49,9 +49,9 @@ def upload_file():
 
         # Save spectrogram as an image file
         plt.figure(figsize=(500, 5))
-        librosa.display.specshow(librosa.power_to_db(spectrogram), sr=sr, x_axis='time', y_axis='mel', fmin=2000, fmax=8000, cmap="gray_r")
-        plt.xlabel('Time (s)')
+        librosa.display.specshow(librosa.power_to_db(spectrogram), sr=sr, y_axis='mel', fmin=2000, fmax=8000, cmap="gray_r")
         plt.ylabel('Frequency (Hz)')
+        plt.yticks([2000, 3000, 4000, 5000, 6000, 7000, 8000])
         spectrogram_image_path = os.path.join(app.config['SPECTROGRAM_FOLDER'], 'spectrogram.png')
         plt.savefig(spectrogram_image_path)
         plt.close()
