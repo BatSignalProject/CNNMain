@@ -44,12 +44,12 @@ def upload_file():
         # Load the audio file using librosa
         y, sr = librosa.load(file_path, sr=None)
         
-       # Convert to spectrogram with specified frequency range and higher resolution
+        # Convert to spectrogram with specified frequency range and higher resolution
         spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, fmin=20000, fmax=80000, n_fft=1024, hop_length=256)
 
         # Save spectrogram as an image file
-        plt.figure(figsize=(200, 4))
-        librosa.display.specshow(librosa.power_to_db(spectrogram), sr=sr, y_axis='mel', fmin=20000, fmax=80000, cmap="gray_r")
+        plt.figure(figsize=(500, 4))
+        librosa.display.specshow(librosa.power_to_db(spectrogram), sr=sr, y_axis='mel', fmin=20000, fmax=80000, cmap="gray_r", vmin=-60, vmax=20)
         plt.ylabel('Frequency (Hz)')
         plt.yticks([20000, 30000, 40000, 50000, 60000, 70000, 80000])
         spectrogram_image_path = os.path.join(app.config['SPECTROGRAM_FOLDER'], 'spectrogram.png')
