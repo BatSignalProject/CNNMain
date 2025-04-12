@@ -1,46 +1,47 @@
 import os
 from flask import Flask, render_template, request, send_from_directory
+from keras.models import load_model
 import librosa
-import matplotlib.pyplot as plt
 import numpy as np
+import scipy.ndimage
+import matplotlib.pyplot as plt
+import json
 
-# Initialize the Flask app and set configurations for upload and spectrogram directories
 app = Flask(__name__)
 
-# Folder to store uploaded files
 UPLOAD_FOLDER = 'uploads' 
-SPECTROGRAM_FOLDER = 'spectrograms' # Folder to store generated spectrogram images
+SPECTROGRAM_FOLDER = 'spectrograms'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SPECTROGRAM_FOLDER'] = SPECTROGRAM_FOLDER
 
-# Define the root route that renders the upload form HTML page
+# Load the model
+model = load_model('model7.h5')
+
+# Define a fixed size for your spectrograms
+fixed_size = (640, 640)
+
+# Load the label dictionary from the JSON file
+with open('label_dict.json', 'r') as f:
+    label_dict = json.load(f)
+
+# Reverse the dictionary to map indices to labels
+label_dict = {v: k for k, v in label_dict.items()}
+
 @app.route('/')
 def upload_form():
-    return render_template('upload.html') # Render the upload form (upload.html)
+    return render_template('upload.html')
 
-# Define the route to handle file uploads and process them
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    # Check if a file is included in the request
     if 'file' not in request.files:
         return 'No file part'
-    
-    # Get the file from the request
-    file = request.files['file'] 
-
-    # Check if the file name is empty
-    if file.filename == '': 
+    file = request.files['file']
+    if file.filename == '':
         return 'No selected file'
-    
-    # Validate that the file is a .wav file
     if file and file.filename.endswith('.wav'):
         filename = file.filename
-
-        # Define upload path
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-        # Save the uploaded file to the server
-        file.save(file_path) 
+        file.save(file_path)
 
         # Load the audio file using librosa
         y, sr = librosa.load(file_path, sr=None)
@@ -68,8 +69,31 @@ def upload_file():
         plt.savefig(spectrogram_image_path)
         plt.close()
 
-        # Render the results page with the generated spectrogram
-        return render_template('results.html', image_path='spectrograms/spectrogram.png')
+        # Resize spectrogram to fixed size using interpolation
+        zoom_factor = (fixed_size[0] / spectrogram.shape[0], fixed_size[1] / spectrogram.shape[1])
+        spectrogram = scipy.ndimage.zoom(spectrogram, zoom_factor)
+
+        # Flatten spectrogram
+        spectrogram = spectrogram.flatten()
+
+        # Normalize spectrogram
+        spectrogram = (spectrogram - np.min(spectrogram)) / (np.max(spectrogram) - np.min(spectrogram))
+
+        # Reshape spectrogram to include channel dimension
+        spectrogram = spectrogram.reshape(1, fixed_size[0], fixed_size[1], 1)
+
+        # Make prediction
+        y_pred = model.predict(spectrogram)
+
+        # Map predictions to labels dynamically
+        predictions = {label_dict[i]: y_pred[0][i] * 100 for i in range(len(y_pred[0]))}
+
+        # Extract confidence values
+        confidence_nyclei = predictions['BatNYCLEI']
+        confidence_pippip = predictions['BatPIPPIP']
+        confidence_myospp = predictions['BatMYOSPP2']
+
+        return render_template('results.html', confidence_nyclei=confidence_nyclei, confidence_pippip=confidence_pippip, confidence_myospp=confidence_myospp, image_path='spectrograms/spectrogram.png')
     else:
         return 'Invalid file format'
     

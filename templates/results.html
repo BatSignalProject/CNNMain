@@ -16,7 +16,20 @@
     </style>
 </head>
 <body>
+    <!--
     <h1>Spectrogram</h1>
     <img src="{{ url_for('send_spectrogram', filename='spectrogram.png') }}" alt="Spectrogram">
+    -->
+
+    <p>Confidence - nyclei: {{ confidence_nyclei }}%, pippip: {{ confidence_pippip }}%, myospp: {{ confidence_myospp }}%</p>
+
+    <label for="nyclei">nyclei: </label>
+    <meter id="nyclei" value="{{ confidence_nyclei }}" min="0" max="100">{{ confidence_nyclei }}%</meter>
+
+    <label for="pippip">pippip: </label>
+    <meter id="pippip" value="{{ confidence_pippip }}" min="0" max="100">{{ confidence_pippip }}%</meter>
+
+    <label for="myospp">myospp: </label>
+    <meter id="myospp" value="{{ confidence_myospp }}" min="0" max="100">{{ confidence_myospp }}%</meter>
 </body>
 </html>
