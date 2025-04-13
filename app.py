@@ -6,6 +6,8 @@ import numpy as np
 import scipy.ndimage
 import matplotlib.pyplot as plt
 import json
+import zipfile
+import tempfile
 
 app = Flask(__name__)
 
@@ -15,7 +17,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SPECTROGRAM_FOLDER'] = SPECTROGRAM_FOLDER
 
 # Load the model
-model = load_model('model7.h5')
+model = load_model('model6.h5')
 
 # Define a fixed size for your spectrograms
 fixed_size = (640, 640)
@@ -94,6 +96,60 @@ def upload_file():
         confidence_myospp = predictions['BatMYOSPP2']
 
         return render_template('results.html', confidence_nyclei=confidence_nyclei, confidence_pippip=confidence_pippip, confidence_myospp=confidence_myospp, image_path='spectrograms/spectrogram.png')
+    else:
+        return 'Invalid file format'
+
+@app.route('/upload_folder', methods=['POST'])
+def upload_folder():
+    if 'file' not in request.files:
+        return 'No file part'
+    file = request.files['file']
+    if file.filename == '':
+        return 'No selected file'
+    if file and file.filename.endswith('.zip'):
+        # Save the uploaded .zip file to a temporary location
+        temp_dir = tempfile.mkdtemp()
+        zip_path = os.path.join(temp_dir, file.filename)
+        file.save(zip_path)
+
+        # Extract the .zip file
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)
+
+        # Process each .wav file in the extracted folder
+        results = []
+        for root, _, files in os.walk(temp_dir):
+            for filename in files:
+                if filename.endswith('.wav'):
+                    file_path = os.path.join(root, filename)
+
+                    # Process the .wav file
+                    y, sr = librosa.load(file_path, sr=None)
+                    loudest_point = np.argmax(np.abs(y))
+                    trim_duration = int(sr * 0.02)
+                    start_point = max(0, loudest_point - trim_duration)
+                    end_point = min(len(y), loudest_point + trim_duration)
+                    y = y[start_point:end_point]
+                    spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, fmin=20000, fmax=80000, n_fft=1024, hop_length=256)
+                    zoom_factor = (fixed_size[0] / spectrogram.shape[0], fixed_size[1] / spectrogram.shape[1])
+                    spectrogram = scipy.ndimage.zoom(spectrogram, zoom_factor)
+                    spectrogram = (spectrogram - np.min(spectrogram)) / (np.max(spectrogram) - np.min(spectrogram))
+                    spectrogram = spectrogram.reshape(1, fixed_size[0], fixed_size[1], 1)
+
+                    # Make prediction
+                    y_pred = model.predict(spectrogram)
+                    predictions = {label_dict[i]: y_pred[0][i] * 100 for i in range(len(y_pred[0]))}
+
+                    # Append results
+                    results.append({
+                        'file': filename,
+                        'confidence_nyclei': predictions['BatNYCLEI'],
+                        'confidence_pippip': predictions['BatPIPPIP'],
+                        'confidence_myospp': predictions['BatMYOSPP2']
+                    })
+
+        # Render results
+        return render_template('results_folder.html', results=results)
     else:
         return 'Invalid file format'
     

@@ -19,7 +19,12 @@
     <h1>Upload .wav File</h1>
     <form action="/upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".wav">
-        <button type="submit">Upload</button>
+        <button type="submit">Upload File</button>
+    </form>
+    <h1>Upload Folder (as .zip)</h1>
+    <form action="/upload_folder" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".zip">
+        <button type="submit">Upload Folder</button>
     </form>
 </body>
 </html>

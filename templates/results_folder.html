@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folder Results</title>
+    <style>
+        body {
+            text-align: center;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Folder Results</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>File</th>
+                <th>Confidence - nyclei</th>
+                <th>Confidence - pippip</th>
+                <th>Confidence - myospp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results %}
+            <tr>
+                <td>{{ result.file }}</td>
+                <td>{{ result.confidence_nyclei }}%</td>
+                <td>{{ result.confidence_pippip }}%</td>
+                <td>{{ result.confidence_myospp }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
