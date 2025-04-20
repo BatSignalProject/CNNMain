@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, send_file
 from keras.models import load_model
 import librosa
 import numpy as np
@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import json
 import zipfile
 import tempfile
+import csv
 
 app = Flask(__name__)
 
@@ -148,14 +149,27 @@ def upload_folder():
                         'confidence_myospp': predictions['BatMYOSPP2']
                     })
 
+        # Generate a CSV file
+        csv_file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'predictions.csv')
+        with open(csv_file_path, mode='w', newline='') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=['file', 'confidence_nyclei', 'confidence_pippip', 'confidence_myospp'])
+            writer.writeheader()
+            writer.writerows(results)
+
+        csv_file_name = os.path.basename(csv_file_path)
+
         # Render results
-        return render_template('results_folder.html', results=results)
+        return render_template('results_folder.html', results=results, csv_file_name=csv_file_name)
     else:
         return 'Invalid file format'
     
 @app.route('/spectrograms/<filename>')
 def send_spectrogram(filename):
     return send_from_directory(app.config['SPECTROGRAM_FOLDER'], filename)
+
+@app.route('/download_csv/<filename>')
+def download_csv(filename):
+    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True, download_name='predictions.csv')
 
 if __name__ == "__main__":
     app.run(debug=True)
