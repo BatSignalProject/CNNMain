@@ -3,9 +3,9 @@ spectrograms/
 uploads/
 batdata/
 models/
-temp1/
-temp2/
-temp3/
-temp4/
+testNYCLEI/
+testMYOSPP/
+testPIPPIP/
+testPIPPYG/
 
 temp2.py
