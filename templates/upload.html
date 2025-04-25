@@ -3,28 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Upload Files</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
             text-align: center;
+            margin: 0;
+            padding: 0;
         }
-        form, img {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
+        h1 {
+            color: #4CAF50;
+            margin-top: 20px;
+        }
+        h2 {
+            color: #4CAF50;
+            margin-top: 20px;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        img {
+        max-width: 500px;
+        height: auto;
+        margin: 10px 0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
-    <h1>Upload .wav File</h1>
+    <h1>Upload Files</h1>
     <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".wav">
+        <h2>Upload a .wav File</h2>
+        <input type="file" name="file" accept=".wav" required>
         <button type="submit">Upload File</button>
     </form>
-    <h1>Upload Folder (as .zip)</h1>
     <form action="/upload_folder" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".zip">
+        <h2>Upload a Folder (as .zip)</h2>
+        <input type="file" name="file" accept=".zip" required>
         <button type="submit">Upload Folder</button>
     </form>
+    <h1>Leisler’s bat</h1>
+    <img src="{{ url_for('static', filename='leislersbat.jpg') }}" alt="Leisler's Bat">
+    <p>Leisler’s bat (Nyctalus leisleri) is a medium-sized bat known for its fast, high flight and shaggy reddish-brown fur.</p>
+    <p>Common across Ireland, it typically roosts in tree holes but can also be found in buildings.</p>
+    <p>Leisler’s bats emerge early in the evening to hunt insects in open spaces and are often detected by their loud echolocation calls around 20–25 kHz.</p>
+    <h1>Common pipistrelle</h1>
+    <img src="{{ url_for('static', filename='pipistrellus.jpeg') }}" alt="Common pipistrelle">
+    <p>The common pipistrelle (Pipistrellus pipistrellus) is one of the smallest and most widespread bats in Europe.</p>
+    <p>With a wingspan of around 20–25 cm, it roosts in buildings, trees, and bat boxes, often close to human settlements.</p>
+    <p>It emerges at dusk to hunt tiny insects using rapid, high-pitched echolocation calls peaking around 45 kHz.</p>
+    <h1>Myotis</h1>
+    <h2>Daubenton's bat and Natterer’s bat</h2>
+    <img src="{{ url_for('static', filename='daubenton.jpg') }}" alt="Daubenton's bat"> <img src="{{ url_for('static', filename='natterer.jpg') }}" alt="Natterer’s bat">
+    <p>Myotis bats (Myotis spp.) are a diverse group of "mouse-eared" bats found across Europe and beyond.</p>
+    <p>They typically have soft, brownish-grey fur and large, broad ears.</p>
+    <p>Roosting in trees, caves, and buildings, Myotis species hunt insects over water, woodlands, and meadows, using quiet, high-frequency echolocation.</p>
+    <p>Common species include Daubenton’s bat and Natterer’s bat, which are identifiable by this model.</p>
 </body>
 </html>

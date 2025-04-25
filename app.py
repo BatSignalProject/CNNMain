@@ -20,7 +20,7 @@ app.config['SPECTROGRAM_FOLDER'] = SPECTROGRAM_FOLDER
 # Load the model
 model = load_model('best_model.h5')
 
-# Define a fixed size for your spectrograms
+# Define spectrogram size
 fixed_size = (640, 640)
 
 # Load the label dictionary from the JSON file

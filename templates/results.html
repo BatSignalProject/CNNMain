@@ -6,28 +6,69 @@
     <title>Spectrogram Result</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
             text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #4CAF50;
+            margin-top: 20px;
         }
         img {
             display: block;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 20px auto;
+            max-width: 80%;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .confidence-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .confidence-item {
+            text-align: center;
+        }
+        .confidence-item label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        meter {
+            width: 100px;
+            height: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Spectrogram</h1>
+    <h1>Spectrogram Result</h1>
     <img src="{{ url_for('send_spectrogram', filename='spectrogram.png') }}" alt="Spectrogram">
 
-    <p>Confidence - nyclei: {{ confidence_nyclei }}%, pippip: {{ confidence_pippip }}%, myospp: {{ confidence_myospp }}%</p>
-
-    <label for="nyclei">nyclei: </label>
-    <meter id="nyclei" value="{{ confidence_nyclei }}" min="0" max="100">{{ confidence_nyclei }}%</meter>
-
-    <label for="pippip">pippip: </label>
-    <meter id="pippip" value="{{ confidence_pippip }}" min="0" max="100">{{ confidence_pippip }}%</meter>
-
-    <label for="myospp">myospp: </label>
-    <meter id="myospp" value="{{ confidence_myospp }}" min="0" max="100">{{ confidence_myospp }}%</meter>
+    <p>Confidence Scores:</p>
+    <div class="confidence-container">
+        <div class="confidence-item">
+            <label for="nyclei">Leisler’s bat</label>
+            <meter id="nyclei" value="{{ confidence_nyclei }}" min="0" max="100"></meter>
+            <p>{{ confidence_nyclei | round(2) }}%</p>
+        </div>
+        <div class="confidence-item">
+            <label for="pippip">Common pipistrelle</label>
+            <meter id="pippip" value="{{ confidence_pippip }}" min="0" max="100"></meter>
+            <p>{{ confidence_pippip | round(2) }}%</p>
+        </div>
+        <div class="confidence-item">
+            <label for="myospp">Myotis (Daubenton’s bat / Natterer’s bat)</label>
+            <meter id="myospp" value="{{ confidence_myospp }}" min="0" max="100"></meter>
+            <p>{{ confidence_myospp | round(2) }}%</p>
+        </div>
+    </div>
 </body>
 </html>

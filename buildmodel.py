@@ -18,8 +18,8 @@ labels = []
 fixed_size = (640, 640)
 
 # Create a directory to save spectrograms (FOR TESTING, REMOVE LATER)
-spectrogram_dir = 'spectrograms_training'
-os.makedirs(spectrogram_dir, exist_ok=True)
+# spectrogram_dir = 'spectrograms_training'
+# os.makedirs(spectrogram_dir, exist_ok=True)
 
 # Loop over all directories in the parent directory
 for species_dir in ['BatNYCLEI', 'BatPIPPIP', 'BatMYOSPP2']:
@@ -44,13 +44,13 @@ for species_dir in ['BatNYCLEI', 'BatPIPPIP', 'BatMYOSPP2']:
             spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, fmin=20000, fmax=80000, n_fft=1024, hop_length=256)
 
             # Save spectrogram (FOR TESTING, REMOVE LATER)
-            plt.figure(figsize=(4, 4))
-            librosa.display.specshow(librosa.power_to_db(spectrogram), sr=sr, y_axis='mel', fmin=20000, fmax=80000, cmap="gray_r", vmin=-60, vmax=20)
-            plt.ylabel('Frequency (Hz)')
-            plt.yticks([20000, 30000, 40000, 50000, 60000, 70000, 80000])
-            spectrogram_image_path = os.path.join(spectrogram_dir, f"{species_dir}_{filename.replace('.wav', '.png')}")
-            plt.savefig(spectrogram_image_path)
-            plt.close()
+            # plt.figure(figsize=(4, 4))
+            # librosa.display.specshow(librosa.power_to_db(spectrogram), sr=sr, y_axis='mel', fmin=20000, fmax=80000, cmap="gray_r", vmin=-60, vmax=20)
+            # plt.ylabel('Frequency (Hz)')
+            # plt.yticks([20000, 30000, 40000, 50000, 60000, 70000, 80000])
+            # spectrogram_image_path = os.path.join(spectrogram_dir, f"{species_dir}_{filename.replace('.wav', '.png')}")
+            # plt.savefig(spectrogram_image_path)
+            # plt.close()
             
             # Resize spectrogram to fixed size using interpolation
             zoom_factor = (fixed_size[0] / spectrogram.shape[0], fixed_size[1] / spectrogram.shape[1])
