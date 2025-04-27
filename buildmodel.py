@@ -6,16 +6,17 @@ from sklearn.model_selection import train_test_split
 from keras.utils import to_categorical
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 import matplotlib.pyplot as plt
 import json
+import collections
 
 # List to hold spectrograms and labels
 spectrograms = []
 labels = []
 
 # Define a fixed size for your spectrograms
-fixed_size = (640, 640)
+fixed_size = (128, 128)
 
 # Create a directory to save spectrograms (FOR TESTING, REMOVE LATER)
 # spectrogram_dir = 'spectrograms_training'
@@ -56,6 +57,8 @@ for species_dir in ['BatNYCLEI', 'BatPIPPIP', 'BatMYOSPP2']:
             zoom_factor = (fixed_size[0] / spectrogram.shape[0], fixed_size[1] / spectrogram.shape[1])
             spectrogram = scipy.ndimage.zoom(spectrogram, zoom_factor)
 
+            spectrogram = (spectrogram - np.min(spectrogram)) / (np.max(spectrogram) - np.min(spectrogram))
+
             # Flatten spectrogram and add to list
             spectrograms.append(spectrogram.flatten())
 
@@ -67,12 +70,12 @@ for species_dir in ['BatNYCLEI', 'BatPIPPIP', 'BatMYOSPP2']:
 # Convert list to numpy array
 spectrograms = np.array(spectrograms)
 
-# Normalize the spectrograms
-spectrograms = (spectrograms - np.min(spectrograms)) / (np.max(spectrograms) - np.min(spectrograms))
-
 # Convert labels to integers
 label_dict = {label: i for i, label in enumerate(set(labels))}
 labels = [label_dict[label] for label in labels]
+
+
+print(collections.Counter(labels))
 
 # Save the label dictionary to a JSON file
 with open('label_dict.json', 'w') as f:
@@ -82,39 +85,51 @@ print("Label dictionary saved to label_dict.json")
 
 labels = to_categorical(labels)
 
-# Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(spectrograms, labels, test_size=0.2, random_state=42)
+X_train, X_temp, y_train, y_temp = train_test_split(spectrograms, labels, test_size=0.3, random_state=42, stratify=labels)
+
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42, stratify=y_temp)
+
+X_train = X_train + np.random.normal(0, 0.01, X_train.shape)
+
+# Save the testing data
+np.save('X_test.npy', X_test)
+np.save('y_test.npy', y_test)
 
 # Reshape data to fit the model input
 X_train = X_train.reshape(-1, fixed_size[0], fixed_size[1], 1)
+X_val = X_val.reshape(-1, fixed_size[0], fixed_size[1], 1)
 X_test = X_test.reshape(-1, fixed_size[0], fixed_size[1], 1)
 
-# Initialize the model
+
 model = Sequential()
 
-# Add a convolutional layer
 model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(fixed_size[0], fixed_size[1], 1)))
-
-# Add a pooling layer
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
-# Flatten the tensor output from the previous layer
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(128, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
 model.add(Flatten())
+model.add(Dense(256, activation='relu'))
+model.add(Dropout(0.5))
 
-# Add a dense layer
-model.add(Dense(128, activation='relu'))
-
-# Add a dropout layer to prevent overfitting
+model.add(Dense(64, activation='relu'))
 model.add(Dropout(0.3))
 
-# Add the output layer
-model.add(Dense(len(label_dict), activation='softmax'))
+model.add(Dense(3, activation='softmax'))
 
-# Compile the model
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+early_stopping = EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
+lr_schedule = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, verbose=1)
 
 # Define the checkpoint callback
-checkpoint = ModelCheckpoint(filepath='best_model.h5', monitor='val_accuracy', save_best_only=True, mode='max', verbose=1)
+# checkpoint = ModelCheckpoint(filepath='best_model3.h5', monitor='val_accuracy', save_best_only=True, mode='max', verbose=1)
 
 # Train the model
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=30, batch_size=16, callbacks=[checkpoint])
+model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=200, batch_size=16, callbacks=[early_stopping, lr_schedule])
+
+model.save('model.h5')

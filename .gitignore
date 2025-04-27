@@ -1,11 +1,7 @@
-sounds/
-spectrograms/
-uploads/
 batdata/
-models/
 testNYCLEI/
 testMYOSPP/
 testPIPPIP/
 testPIPPYG/
 
-temp2.py
+**/__pycache__

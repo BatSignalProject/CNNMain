@@ -18,10 +18,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SPECTROGRAM_FOLDER'] = SPECTROGRAM_FOLDER
 
 # Load the model
-model = load_model('best_model.h5')
+model = load_model('model.h5')
 
 # Define spectrogram size
-fixed_size = (640, 640)
+fixed_size = (128, 128)
 
 # Load the label dictionary from the JSON file
 with open('label_dict.json', 'r') as f:
@@ -76,11 +76,10 @@ def upload_file():
         zoom_factor = (fixed_size[0] / spectrogram.shape[0], fixed_size[1] / spectrogram.shape[1])
         spectrogram = scipy.ndimage.zoom(spectrogram, zoom_factor)
 
+        spectrogram = (spectrogram - np.min(spectrogram)) / (np.max(spectrogram) - np.min(spectrogram))
+
         # Flatten spectrogram
         spectrogram = spectrogram.flatten()
-
-        # Normalize spectrogram
-        spectrogram = (spectrogram - np.min(spectrogram)) / (np.max(spectrogram) - np.min(spectrogram))
 
         # Reshape spectrogram to include channel dimension
         spectrogram = spectrogram.reshape(1, fixed_size[0], fixed_size[1], 1)
